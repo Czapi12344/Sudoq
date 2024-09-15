@@ -1,13 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useKeycloak } from "@react-keycloak/web";
 
-const PlayerStats: React.FC = () => {
+type PlayerStatsProps = {
+  score: number;
+  time: number; 
+  resetTime: boolean;
+  setTime: React.Dispatch<React.SetStateAction<number>>; 
+};
+
+const PlayerStats: React.FC<PlayerStatsProps> = ({ score, resetTime }) => {
   const { keycloak } = useKeycloak();
-
-
   const playerName = keycloak?.tokenParsed?.preferred_username || "Player";
-
-  const [score, setScore] = useState(0);
   const [time, setTime] = useState(0);
 
   useEffect(() => {
@@ -17,6 +20,12 @@ const PlayerStats: React.FC = () => {
 
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (resetTime) {
+      setTime(0);
+    }
+  }, [resetTime]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -36,7 +45,6 @@ const PlayerStats: React.FC = () => {
       <div className="mb-2">
         <span className="font-medium">Time:</span> {formatTime(time)}
       </div>
-      {/* Add more stats as needed */}
     </div>
   );
 };

@@ -2,16 +2,56 @@ import React, { useState } from "react";
 import PlayerStats from "./components/PlayerStats";
 import SudokuBoard from "./components/SudokuBoard";
 import Modal from "./components/Modal";
-import { useKeycloak } from "@react-keycloak/web"; // Import useKeycloak for logout
-import AuthCheck from "./components/AuthCheck"; 
+import WinModal from "./components/Winmodal";
+import { useKeycloak } from "@react-keycloak/web";
+import AuthCheck from "./components/AuthCheck";
 
 function App() {
-  const [puzzle, setPuzzle] = useState<string[][] | null>(null);
-  const [solution, setSolution] = useState<string[][] | null>(null);
+  const [puzzle, setPuzzle] = useState<(number | null)[][] | null>(null);
+  const [solution, setSolution] = useState<(number | null)[][] | null>(null);
   const [difficulty, setDifficulty] = useState("easy");
   const [showModal, setShowModal] = useState(false);
+  const [score, setScore] = useState(0);
+  const [isWon, setIsWon] = useState(false); 
+  const [time, setTime] = useState(0); 
+  const [finalTime, setFinalTime] = useState<number | null>(null); 
 
-  const { keycloak } = useKeycloak(); // Access the keycloak instance
+  const { keycloak } = useKeycloak();
+
+  const getPoints = (isCorrect: boolean) => {
+    let points = 0;
+    if (isCorrect) {
+      points = difficulty === "easy" ? 10 : difficulty === "medium" ? 20 : 30;
+    } else {
+      points = -10; 
+    }
+    return points;
+  };
+
+  const handleWin = async () => {
+    setIsWon(true);
+    setFinalTime(time); 
+
+    try {
+      const username = keycloak.tokenParsed?.preferred_username || "Anonymous";
+      const response = await fetch("http://localhost:8000/submit-score", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username,
+          score,
+          time,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to submit score");
+      }
+    } catch (error) {
+      console.error("Error submitting score:", error);
+    }
+  };
 
   const startNewGame = async () => {
     try {
@@ -24,6 +64,10 @@ function App() {
         const solutionBoard = JSON.parse(data.solution);
         setPuzzle(board);
         setSolution(solutionBoard);
+        setScore(0); 
+        setIsWon(false); 
+        setTime(0); 
+        setFinalTime(null); 
       } else {
         alert(data.detail || "Error starting new game");
       }
@@ -50,11 +94,9 @@ function App() {
   };
 
   return (
-
     <div className="min-h-screen flex flex-col">
       <header className="bg-blue-600 text-white p-4 text-center flex justify-between">
         <h1 className="text-2xl font-bold">Online Sudoku</h1>
-
         {keycloak.authenticated && (
           <button
             onClick={() => keycloak.logout()}
@@ -63,20 +105,45 @@ function App() {
           </button>
         )}
       </header>
-     <AuthCheck>  
+      <AuthCheck>
         <main className="flex flex-1">
           <aside className="w-1/4 bg-gray-100 p-4">
-            <PlayerStats />
+            <PlayerStats
+              score={score}
+              time={time}
+              setTime={setTime}
+              resetTime={isWon}
+            />
           </aside>
           <section className="w-3/4 p-4">
             {puzzle ? (
-              <SudokuBoard board={puzzle} solution={solution} />
+              <SudokuBoard
+                board={puzzle}
+                solution={solution}
+                getPoints={getPoints}
+                setScore={setScore}
+                handleWin={handleWin}
+                isWon={isWon} 
+              />
             ) : (
               <SudokuBoard
-                board={JSON.parse(
-                  "[[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null]]"
-                )}
+                board={[
+                  [null, null, null, null, null, null, null, null, null],
+                  [null, null, null, null, null, null, null, null, null],
+                  [null, null, null, null, null, null, null, null, null],
+                  [null, null, null, null, null, null, null, null, null],
+                  [null, null, null, null, null, null, null, null, null],
+                  [null, null, null, null, null, null, null, null, null],
+                  [null, null, null, null, null, null, null, null, null],
+                  [null, null, null, null, null, null, null, null, null],
+                  [null, null, null, null, null, null, null, null, null],
+            
+                ]}
                 solution={[]}
+                getPoints={getPoints}
+                setScore={setScore}
+                handleWin={handleWin}
+                isWon={isWon}
               />
             )}
 
@@ -101,19 +168,22 @@ function App() {
             </div>
           </section>
         </main>
+        <footer className="bg-blue-600 text-white p-2 text-center">
+          &copy; 2024 Sudoku Online
+        </footer>
 
-      <footer className="bg-blue-600 text-white p-2 text-center">
-        &copy; 2024 Sudoku Online
-      </footer>
-
-      {showModal && (
-        <Modal onConfirm={confirmNewGame} onCancel={cancelNewGame}>
-          <p>A game is already in progress. Do you want to restart?</p>
-        </Modal>
+        {showModal && (
+          <Modal onConfirm={confirmNewGame} onCancel={cancelNewGame}>
+            <p>A game is already in progress. Do you want to restart?</p>
+          </Modal>
         )}
-    </AuthCheck>
+
+       
+        {isWon && finalTime !== null && (
+          <WinModal score={score} time={finalTime} onNewGame={startNewGame} />
+        )}
+      </AuthCheck>
     </div>
-    
   );
 }
 

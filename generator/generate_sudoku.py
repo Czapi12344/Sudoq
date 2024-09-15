@@ -1,6 +1,6 @@
 # generator/generate_sudoku.py
-from sudoku import Sudoku  # Import from py-sudoku
-from sqlalchemy import create_engine, text
+from sudoku import Sudoku  # type: ignore
+from sqlalchemy import create_engine, text   # type: ignore
 import random
 
 DATABASE_URL = "postgresql://sudoku_user:sudoku_pass@db_sudoku:5432/sudoku_db"
@@ -10,14 +10,14 @@ LEVELS = ["easy", "medium", "hard"]
 
 
 def generate_sudoku_puzzle(difficulty):
-    """Generate a unique Sudoku puzzle based on the difficulty using py-sudoku."""
+
     try:
 
         random_seed = random.randint(0, 1000000)
         base_puzzle = Sudoku(3, seed=random_seed)
 
         if difficulty == "easy":
-            puzzle = base_puzzle.difficulty(0.5)
+            puzzle = base_puzzle.difficulty(0.05)
         elif difficulty == "medium":
             puzzle = base_puzzle.difficulty(0.7)
         elif difficulty == "hard":
@@ -30,7 +30,7 @@ def generate_sudoku_puzzle(difficulty):
 
 
 def generate_sudoku_puzzles(difficulty, count=100):
-    """Generate a batch of Sudoku puzzles for a given difficulty."""
+
     puzzles = []
     for _ in range(count):
         puzzle = generate_sudoku_puzzle(difficulty)
@@ -41,7 +41,7 @@ def generate_sudoku_puzzles(difficulty, count=100):
 
 
 def insert_puzzles_to_db(puzzles):
-    """Insert a batch of puzzles into the database."""
+
     try:
         with engine.begin() as connection:
             for puzzle, solution, difficulty in puzzles:
@@ -57,7 +57,7 @@ def insert_puzzles_to_db(puzzles):
 
 
 def check_and_generate_puzzles():
-    """Check if there are less than 10 puzzles for each difficulty, and generate more if needed."""
+
     with engine.connect() as connection:
         for level in LEVELS:
             result = connection.execute(
