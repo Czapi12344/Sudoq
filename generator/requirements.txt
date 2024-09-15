@@ -1,0 +1,5 @@
+nodemon
+sqlalchemy
+psycopg2-binary
+watchdog
+py-sudoku
