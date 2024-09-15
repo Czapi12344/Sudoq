@@ -1,0 +1,33 @@
+{
+  "realm": "myrealm",
+  "enabled": true,
+  "clients": [
+    {
+      "clientId": "my-app",
+      "name": "my-app",
+      "enabled": true,
+      "redirectUris": ["http://localhost:3000/*"],
+      "webOrigins": ["http://localhost:3000"]
+    }
+  ],
+  "identityProviders": [
+    {
+      "alias": "google",
+      "providerId": "google",
+      "enabled": true,
+      "trustEmail": true,
+      "storeToken": false,
+      "addReadTokenRoleOnCreate": false,
+      "authenticateByDefault": false,
+      "linkOnly": false,
+      "config": {
+       
+        "defaultScope": "email profile",
+        "useJwksUrl": "true",
+        "authorizationUrl": "https://accounts.google.com/o/oauth2/auth",
+        "tokenUrl": "https://oauth2.googleapis.com/token",
+        "userInfoUrl": "https://openidconnect.googleapis.com/v1/userinfo"
+      }
+    }
+  ]
+}
