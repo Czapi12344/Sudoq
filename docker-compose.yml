@@ -43,5 +43,31 @@ services:
       timeout: 5s
       retries: 5
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    command:
+      - start-dev
+      - --import-realm
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./keycloak-config:/opt/keycloak/data/import
+    depends_on:
+      - db_keycloak
+
+  db_keycloak:
+    image: postgres
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak_pass
+    volumes:
+      - keycloak_db_data:/var/lib/postgresql/data
+
 volumes:
   db_sudoku_data:
+  db_players_data:
+  keycloak_db_data:
