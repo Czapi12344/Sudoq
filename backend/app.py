@@ -1,5 +1,9 @@
+<<<<<<< HEAD
+from fastapi import FastAPI, HTTPException
+=======
 # backend/app.py
 from fastapi import FastAPI
+>>>>>>> parent of 68884dd (fix 2)
 from sqlalchemy import create_engine, text
 import random
 import re
@@ -27,6 +31,26 @@ async def new_game(difficulty: str):
 
     with engine.connect() as connection:
         result = connection.execute(
+<<<<<<< HEAD
+            text(
+                "SELECT id, puzzle, solution FROM sudoku_puzzles WHERE difficulty = :difficulty ORDER BY RANDOM() LIMIT 1"
+            ),
+            {"difficulty": difficulty},
+        )
+        puzzle_data = result.fetchone()
+        if puzzle_data:
+            puzzle_id, puzzle_content, solution_content = puzzle_data
+
+            puzzle_json = re.sub(r"\bNULL\b", "null", puzzle_content)
+            puzzle_json = puzzle_json.replace("{", "[").replace("}", "]")
+
+            solution_json = re.sub(r"\bNULL\b", "null", solution_content)
+            solution_json = solution_json.replace("{", "[").replace("}", "]")
+
+            connection.execute(
+                text("DELETE FROM sudoku_puzzles WHERE id = :id"), {"id": puzzle_id}
+            )
+=======
             text("SELECT id, puzzle FROM sudoku_puzzles WHERE difficulty = :difficulty ORDER BY RANDOM() LIMIT 1"),
             {"difficulty": difficulty}
         )
@@ -41,6 +65,7 @@ async def new_game(difficulty: str):
 
             # Optionally remove the puzzle from the database to mark it as "used"
             connection.execute(text("DELETE FROM sudoku_puzzles WHERE id = :id"), {"id": puzzle_id})
+>>>>>>> parent of 68884dd (fix 2)
 
             return {"puzzle": puzzle_json}
         else:

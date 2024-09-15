@@ -1,10 +1,10 @@
-// src/components/PlayerStats.tsx
+
 import React, { useState, useEffect } from "react";
 
 const PlayerStats: React.FC = () => {
   const [playerName, setPlayerName] = useState("Player1");
   const [score, setScore] = useState(0);
-  const [time, setTime] = useState(0); // Time in seconds
+  const [time, setTime] = useState(0); 
 
   useEffect(() => {
     const timer = setInterval(() => {
