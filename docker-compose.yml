@@ -43,6 +43,21 @@ services:
       timeout: 5s
       retries: 5
 
+  db_player:
+    image: postgres
+    environment:
+      POSTGRES_USER: player_user
+      POSTGRES_PASSWORD: player_user
+      POSTGRES_DB: player_db
+    volumes:
+      - db_players_data:/var/lib/postgresql/data
+      - ./db_players/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U player_user -d player_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5 
+
   keycloak:
     image: quay.io/keycloak/keycloak:latest
     environment:
